@@ -1,0 +1,21 @@
+__pycache__/
+*.py[cod]
+
+# Local runtime data
+naicha_mouse_profile.json
+naicha_mouse_ai_config.json
+
+# Local packages and previews
+*.zip
+tmp_*/
+transparency_previews/
+*_contact_sheet.png
+accessories/*preview*.png
+accessories/*chromakey*.png
+
+# Editor and OS files
+.vscode/
+.idea/
+Thumbs.db
+Desktop.ini
+.DS_Store

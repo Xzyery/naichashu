@@ -1,0 +1,103 @@
+{
+  "costs": {
+    "single": 30,
+    "daily_discount": 20,
+    "ten": 270
+  },
+  "rarities": {
+    "normal": 68,
+    "rare": 24,
+    "super_rare": 7,
+    "hidden": 1
+  },
+  "rewards": [
+    {"id": "normal_interaction_3", "type": "interaction", "rarity": "normal", "title": "小小进度", "amount": 3, "weight": 18},
+    {"id": "normal_coin_10", "type": "coins", "rarity": "normal", "title": "金币小返还", "amount": 10, "weight": 18},
+    {"id": "normal_shard_1", "type": "shards", "rarity": "normal", "title": "奶茶碎片", "amount": 1, "weight": 18},
+    {"id": "normal_cute_show", "type": "performance", "rarity": "normal", "title": "可爱点头演出", "state_id": "idle_nod", "weight": 10},
+    {"id": "normal_good_show", "type": "performance", "rarity": "normal", "title": "乖乖卖萌演出", "state_id": "idle_good", "weight": 11},
+
+    {"id": "nianiania", "type": "dialogue", "rarity": "normal", "mode": "unlock", "title": "nianiania", "text": "nianiania", "target_groups": ["idle", "pet", "celebrate"], "weight": 2.5},
+    {"id": "nini_thinking", "type": "dialogue", "rarity": "normal", "mode": "instant", "title": "鼠鼠思考", "text": "nini...奶茶鼠思考中", "target_groups": ["idle"], "weight": 2.5},
+    {"id": "bubble_idea", "type": "dialogue", "rarity": "normal", "mode": "instant", "title": "灵感上浮", "text": "咕噜咕噜，灵感上浮", "target_groups": ["idle", "study"], "weight": 2.5},
+    {"id": "mouse_language_loaded", "type": "dialogue", "rarity": "normal", "mode": "unlock", "title": "鼠鼠语加载完成", "text": "鼠鼠语加载完成", "target_groups": ["idle"], "weight": 2.5},
+    {"id": "soft_effort", "type": "dialogue", "rarity": "normal", "mode": "unlock", "title": "软乎乎努力", "text": "今天也要软乎乎地努力", "target_groups": ["idle", "study"], "weight": 2.5},
+    {"id": "um_um_um", "type": "dialogue", "rarity": "normal", "mode": "instant", "title": "嗯嗯嗯", "text": "奶茶鼠：嗯嗯嗯！", "target_groups": ["pet", "idle"], "weight": 2.5},
+    {"id": "tiny_progress", "type": "dialogue", "rarity": "normal", "mode": "unlock", "title": "小小进度", "text": "小小进度也是进度", "target_groups": ["idle", "study", "encourage"], "weight": 2.5},
+    {"id": "cute_three_seconds", "type": "dialogue", "rarity": "normal", "mode": "instant", "title": "可爱三秒", "text": "让我先可爱三秒", "target_groups": ["idle", "pet"], "weight": 2.5},
+    {"id": "companion_bubble", "type": "dialogue", "rarity": "normal", "mode": "instant", "title": "陪伴值冒泡", "text": "叮，陪伴值冒泡", "target_groups": ["idle"], "weight": 2.5},
+    {"id": "blink_support", "type": "dialogue", "rarity": "normal", "mode": "unlock", "title": "眨眼陪伴", "text": "你继续，我负责眨眼", "target_groups": ["idle", "typing"], "weight": 2.5},
+
+    {"id": "temp_crown_small", "type": "accessory", "rarity": "rare", "title": "临时小皇冠", "temporary": true, "duration_minutes": 20, "state_id": "gift_flower", "weight": 14},
+    {"id": "temp_study_glasses", "type": "accessory", "rarity": "rare", "title": "临时学习眼镜", "temporary": true, "duration_minutes": 20, "state_id": "gift_flower", "weight": 13},
+    {"id": "temp_sleep_hat", "type": "accessory", "rarity": "rare", "title": "临时睡帽", "temporary": true, "duration_minutes": 20, "state_id": "gift_flower", "weight": 12},
+    {"id": "bow_pink", "type": "accessory", "rarity": "rare", "title": "临时粉色蝴蝶结", "temporary": true, "duration_minutes": 20, "state_id": "gift_flower", "weight": 8},
+    {"id": "flower_clip", "type": "accessory", "rarity": "rare", "title": "临时小花发夹", "temporary": true, "duration_minutes": 20, "state_id": "gift_flower", "weight": 8},
+    {"id": "milk_tea_charm", "type": "accessory", "rarity": "rare", "title": "临时奶茶杯挂件", "temporary": true, "duration_minutes": 20, "state_id": "gift_flower", "weight": 8},
+    {"id": "cloud_sleep_hat", "type": "accessory", "rarity": "rare", "title": "临时云朵睡眠帽", "temporary": true, "duration_minutes": 20, "state_id": "gift_flower", "weight": 6},
+    {"id": "rare_bubble_cream", "type": "bubble_frame", "rarity": "rare", "title": "奶盖气泡边框", "state_id": "gift_flower", "weight": 13},
+    {"id": "rare_interaction_15", "type": "interaction", "rarity": "rare", "title": "一颗珍珠进度", "amount": 15, "state_id": "event_cheer_dance", "weight": 15},
+    {"id": "rare_coin_30", "type": "coins", "rarity": "rare", "title": "金币返还", "amount": 30, "state_id": "gift_flower", "weight": 15},
+
+    {"id": "sweetness_up", "type": "dialogue", "rarity": "rare", "mode": "unlock", "title": "今日甜度上升", "text": "nianiania！今日甜度上升", "target_groups": ["idle", "celebrate"], "state_id": "gift_flower", "weight": 2.25},
+    {"id": "you_can_today", "type": "dialogue", "rarity": "rare", "mode": "unlock", "title": "今天很可以", "text": "奶茶鼠宣布：你今天很可以", "target_groups": ["idle", "encourage", "celebrate"], "state_id": "gift_flower", "weight": 2.25},
+    {"id": "milk_tea_then_task", "type": "dialogue", "rarity": "rare", "mode": "unlock", "title": "喝奶茶打任务", "text": "先喝一口奶茶，再打败任务", "target_groups": ["study", "encourage"], "state_id": "gift_flower", "weight": 2.25},
+    {"id": "mouse_guarding", "type": "dialogue", "rarity": "rare", "mode": "unlock", "title": "鼠鼠坐镇", "text": "不要慌，鼠鼠已经坐镇", "target_groups": ["idle", "study", "encourage"], "state_id": "gift_flower", "weight": 2.25},
+    {"id": "pearl_progress", "type": "dialogue", "rarity": "rare", "mode": "unlock", "title": "值得一颗珍珠", "text": "这个进度，值得一颗珍珠", "target_groups": ["celebrate", "encourage"], "state_id": "gift_flower", "weight": 2.25},
+    {"id": "desktop_edge_support", "type": "dialogue", "rarity": "rare", "mode": "unlock", "title": "桌面边边加油", "text": "我在桌面边边给你加油", "target_groups": ["idle", "encourage"], "state_id": "gift_flower", "weight": 2.25},
+    {"id": "idea_buy_milk_tea", "type": "dialogue", "rarity": "rare", "mode": "unlock", "title": "灵感买奶茶", "text": "灵感没有走远，它只是去买奶茶了", "target_groups": ["idle", "study"], "state_id": "gift_flower", "weight": 2.25},
+    {"id": "mouse_radar_break", "type": "dialogue", "rarity": "rare", "mode": "unlock", "title": "鼠鼠雷达", "text": "鼠鼠雷达检测到：你需要休息一下", "target_groups": ["idle", "break", "reminder"], "state_id": "gift_flower", "weight": 2.25},
+
+    {"id": "perm_crown_small", "type": "accessory", "rarity": "super_rare", "title": "永久小皇冠", "state_id": "event_fireworks", "weight": 10},
+    {"id": "perm_star_clip", "type": "accessory", "rarity": "super_rare", "title": "永久星星发夹", "state_id": "event_fireworks", "weight": 10},
+    {"id": "perm_study_glasses", "type": "accessory", "rarity": "super_rare", "title": "永久学习眼镜", "state_id": "event_fireworks", "weight": 10},
+    {"id": "perm_scarf", "type": "accessory", "rarity": "super_rare", "title": "永久小围巾", "state_id": "event_fireworks", "weight": 10},
+    {"id": "bow_pink", "type": "accessory", "rarity": "super_rare", "title": "永久粉色蝴蝶结", "state_id": "event_fireworks", "weight": 6},
+    {"id": "flower_clip", "type": "accessory", "rarity": "super_rare", "title": "永久小花发夹", "state_id": "event_fireworks", "weight": 6},
+    {"id": "milk_tea_charm", "type": "accessory", "rarity": "super_rare", "title": "永久奶茶杯挂件", "state_id": "event_fireworks", "weight": 6},
+    {"id": "headphones", "type": "accessory", "rarity": "super_rare", "title": "永久小耳机", "state_id": "event_fireworks", "weight": 6},
+    {"id": "work_badge", "type": "accessory", "rarity": "super_rare", "title": "永久打工工牌", "state_id": "event_fireworks", "weight": 6},
+    {"id": "satchel", "type": "accessory", "rarity": "super_rare", "title": "永久小背包", "state_id": "event_fireworks", "weight": 6},
+    {"id": "milk_tea_hat", "type": "accessory", "rarity": "super_rare", "title": "永久满糖奶茶帽", "state_id": "event_fireworks", "weight": 5},
+    {"id": "cloud_sleep_hat", "type": "accessory", "rarity": "super_rare", "title": "永久云朵睡眠帽", "state_id": "event_fireworks", "weight": 5},
+    {"id": "perm_cream_frame", "type": "bubble_frame", "rarity": "super_rare", "title": "永久奶盖气泡边框", "state_id": "event_fireworks", "weight": 10},
+    {"id": "title_cream_guard", "type": "title", "rarity": "super_rare", "title": "奶盖守护鼠", "state_id": "event_fireworks", "weight": 8},
+    {"id": "title_full_sugar_ready", "type": "title", "rarity": "super_rare", "title": "满糖预备鼠", "state_id": "event_fireworks", "weight": 8},
+    {"id": "firework_show", "type": "performance", "rarity": "super_rare", "title": "烟花庆祝演出", "state_id": "event_fireworks", "weight": 7},
+    {"id": "super_interaction_60", "type": "interaction", "rarity": "super_rare", "title": "满杯互动值", "amount": 60, "state_id": "event_cheer_dance", "weight": 7},
+
+    {"id": "full_sugar_encourage_pack", "type": "dialogue", "rarity": "super_rare", "mode": "pack", "title": "满糖鼓励包", "state_id": "event_cheer_dance", "weight": 6.7, "dialogues": [
+      {"text": "今天的你，满糖通过", "target_groups": ["idle", "encourage", "celebrate"]},
+      {"text": "再写一点点，胜利就在杯底", "target_groups": ["study", "encourage"]},
+      {"text": "你不是拖延，你是在蓄力", "target_groups": ["idle", "encourage"]},
+      {"text": "奶茶鼠给你加满勇气", "target_groups": ["encourage", "pet"]},
+      {"text": "这一段我们一起守住", "target_groups": ["study", "typing"]}
+    ]},
+    {"id": "mouse_language_pack", "type": "dialogue", "rarity": "super_rare", "mode": "pack", "title": "鼠鼠语包", "state_id": "event_cheer_dance", "weight": 6.7, "dialogues": [
+      {"text": "nianiania", "target_groups": ["idle", "pet"]},
+      {"text": "nianiania？", "target_groups": ["idle", "event"]},
+      {"text": "nianiania！", "target_groups": ["celebrate", "pet"]},
+      {"text": "ni...nia...奶茶鼠上线", "target_groups": ["startup", "idle"]},
+      {"text": "nianiania，表示赞同", "target_groups": ["idle", "pet", "celebrate"]}
+    ]},
+    {"id": "focus_writing_pack", "type": "dialogue", "rarity": "super_rare", "mode": "pack", "title": "专注陪写包", "state_id": "event_cheer_dance", "weight": 6.6, "dialogues": [
+      {"text": "咔哒咔哒，进度正在出现", "target_groups": ["typing", "study"]},
+      {"text": "键盘声很好听，是努力的声音", "target_groups": ["typing", "study"]},
+      {"text": "先写一句也算赢", "target_groups": ["study", "encourage"]},
+      {"text": "鼠鼠陪写，不许偷偷放弃", "target_groups": ["typing", "encourage"]},
+      {"text": "灵感 +1，稳定 +1", "target_groups": ["typing", "celebrate"]}
+    ]},
+
+    {"id": "full_sugar_crown", "type": "accessory", "rarity": "hidden", "title": "满糖皇冠", "state_id": "event_happy_fly", "weight": 16},
+    {"id": "lucky_star_halo", "type": "accessory", "rarity": "hidden", "title": "欧气星环", "state_id": "event_happy_fly", "weight": 9},
+    {"id": "guardian_cape", "type": "accessory", "rarity": "hidden", "title": "奶茶守护披风", "state_id": "event_happy_fly", "weight": 9},
+    {"id": "rainbow_sticker", "type": "accessory", "rarity": "hidden", "title": "隐藏彩虹贴纸", "state_id": "event_happy_fly", "weight": 8},
+    {"id": "title_lucky_mouse", "type": "title", "rarity": "hidden", "title": "今日欧气鼠", "state_id": "event_happy_fly", "weight": 16},
+    {"id": "happy_fly_show", "type": "performance", "rarity": "hidden", "title": "愉快飞天庆祝", "state_id": "event_happy_fly", "weight": 16},
+    {"id": "hidden_big_bundle", "type": "bundle", "rarity": "hidden", "title": "满糖大奖礼包", "interaction": 120, "coins": 120, "shards": 8, "state_id": "event_happy_fly", "weight": 16},
+    {"id": "full_sugar_mouse_language", "type": "dialogue", "rarity": "hidden", "mode": "unlock", "title": "隐藏口头禅：满糖鼠鼠语", "text": "nianiania nianiania！满糖警报！", "target_groups": ["idle", "celebrate"], "state_id": "event_happy_fly", "weight": 6.7},
+    {"id": "lucky_broadcast", "type": "dialogue", "rarity": "hidden", "mode": "unlock", "title": "隐藏口头禅：欧气播报", "text": "奶茶鼠震惊：你今天真的有点欧", "target_groups": ["idle", "celebrate"], "state_id": "event_happy_fly", "weight": 6.7},
+    {"id": "mystery_spell", "type": "dialogue", "rarity": "hidden", "mode": "unlock", "title": "隐藏口头禅：神秘咒语", "text": "咕噜咕噜珍珠圆，今天好运转一圈", "target_groups": ["idle", "celebrate"], "state_id": "event_happy_fly", "weight": 6.6},
+    {"id": "hidden_shards_20", "type": "shards", "rarity": "hidden", "title": "隐藏奶茶碎片", "amount": 20, "state_id": "event_happy_fly", "weight": 16}
+  ]
+}

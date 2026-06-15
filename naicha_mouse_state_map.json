@@ -1,0 +1,71 @@
+{
+  "petName": "奶茶鼠",
+  "assetFolder": "IMG_5791",
+  "defaultState": "idle_static_cute",
+  "startupSequence": ["startup_sleepy", "startup_arrive"],
+  "exitState": "exit_goodbye",
+  "randomGroups": {
+    "daily": 1,
+    "relax": 1,
+    "life_work": 1,
+    "event_light": 1,
+    "event_positive": 1,
+    "event_negative": 1
+  },
+  "states": [
+    {"id": "startup_sleepy", "label": "启动起床", "category": "startup", "file": "启动的时候展示起不来.GIF", "bubble_group": "startup", "is_random_enabled": false, "random_group": "none", "random_weight": 0, "triggers": ["app_start"]},
+    {"id": "startup_arrive", "label": "我来了", "category": "startup", "file": "我来了.GIF", "bubble_group": "startup", "is_random_enabled": false, "random_group": "none", "random_weight": 0, "triggers": ["app_start"]},
+    {"id": "exit_goodbye", "label": "退场再见", "category": "exit", "file": "退出时展示再见.GIF", "bubble_group": "exit", "is_random_enabled": false, "random_group": "none", "random_weight": 0, "triggers": ["app_exit"]},
+
+    {"id": "idle_static_cute", "label": "静态卖萌", "category": "idle", "file": "静态卖萌.png", "bubble_group": "idle", "is_random_enabled": true, "random_group": "daily", "random_weight": 5, "triggers": ["idle", "after_action"]},
+    {"id": "idle_cute_png", "label": "卖萌静态", "category": "idle", "file": "卖萌2.PNG", "bubble_group": "idle", "is_random_enabled": true, "random_group": "daily", "random_weight": 4, "triggers": ["idle"]},
+    {"id": "idle_good", "label": "乖", "category": "idle", "file": "乖.GIF", "bubble_group": "idle", "is_random_enabled": true, "random_group": "daily", "random_weight": 4, "triggers": ["idle", "comfort"]},
+    {"id": "idle_nod", "label": "点头", "category": "idle", "file": "点头.GIF", "bubble_group": "idle", "is_random_enabled": true, "random_group": "daily", "random_weight": 4, "triggers": ["idle"]},
+    {"id": "idle_cute", "label": "卖萌", "category": "idle", "file": "卖萌.GIF", "bubble_group": "pet", "is_random_enabled": true, "random_group": "daily", "random_weight": 3, "triggers": ["idle", "pet"]},
+
+    {"id": "relax_slacking", "label": "划水", "category": "relax", "file": "划水.GIF", "bubble_group": "break", "is_random_enabled": true, "random_group": "relax", "random_weight": 3, "triggers": ["break", "idle"]},
+    {"id": "relax_swing", "label": "荡秋千", "category": "relax", "file": "荡秋千.GIF", "bubble_group": "break", "is_random_enabled": true, "random_group": "relax", "random_weight": 3, "triggers": ["break", "idle"]},
+    {"id": "relax_ticklish", "label": "挠痒", "category": "relax", "file": "挠痒.GIF", "bubble_group": "pet", "is_random_enabled": true, "random_group": "relax", "random_weight": 2, "triggers": ["pet", "idle"]},
+    {"id": "relax_sleeping", "label": "睡着了", "category": "relax", "file": "睡着了.GIF", "bubble_group": "break", "is_random_enabled": true, "random_group": "relax", "random_weight": 2, "triggers": ["long_idle", "break"]},
+    {"id": "relax_go_sleep", "label": "给我睡觉", "category": "relax", "file": "给我睡觉.GIF", "bubble_group": "break", "is_random_enabled": true, "random_group": "relax", "random_weight": 2, "triggers": ["night", "break"]},
+
+    {"id": "food_eat", "label": "我要吃饭", "category": "life_work", "file": "我要吃饭.GIF", "bubble_group": "food", "is_random_enabled": true, "random_group": "life_work", "random_weight": 3, "triggers": ["feed_food", "random_life"]},
+    {"id": "food_hungry", "label": "好饿", "category": "life_work", "file": "好饿.GIF", "bubble_group": "food", "is_random_enabled": true, "random_group": "life_work", "random_weight": 2, "triggers": ["random_life"]},
+    {"id": "food_not_hungry", "label": "不饿", "category": "life_work", "file": "不饿.GIF", "bubble_group": "food", "is_random_enabled": true, "random_group": "life_work", "random_weight": 1, "triggers": ["feed_repeat", "random_life"]},
+    {"id": "work_study", "label": "学习中", "category": "life_work", "file": "学习中.GIF", "bubble_group": "study", "is_random_enabled": true, "random_group": "life_work", "random_weight": 3, "triggers": ["focus_start", "random_life"]},
+    {"id": "work_study_static", "label": "静态学习中", "category": "life_work", "file": "静态学习中.png", "bubble_group": "study", "is_random_enabled": true, "random_group": "life_work", "random_weight": 2, "triggers": ["focus_idle", "random_life"]},
+    {"id": "work_brick", "label": "板砖", "category": "life_work", "file": "板砖.GIF", "bubble_group": "work", "is_random_enabled": true, "random_group": "life_work", "random_weight": 2, "triggers": ["task_work", "random_life"]},
+
+    {"id": "event_what", "label": "啥", "category": "event", "file": "啥.GIF", "bubble_group": "event", "is_random_enabled": true, "random_group": "event_light", "random_weight": 3, "triggers": ["random_event"]},
+    {"id": "event_shocked", "label": "吓一跳", "category": "event", "file": "吓一跳.GIF", "bubble_group": "event", "is_random_enabled": true, "random_group": "event_light", "random_weight": 2, "triggers": ["rapid_clicks", "random_event"]},
+    {"id": "event_no", "label": "nonono", "category": "event", "file": "nonono.GIF", "bubble_group": "event", "is_random_enabled": true, "random_group": "event_light", "random_weight": 2, "triggers": ["reject", "random_event"]},
+    {"id": "event_raise_hand", "label": "举手", "category": "event", "file": "举手.GIF", "bubble_group": "event", "is_random_enabled": true, "random_group": "event_light", "random_weight": 1, "triggers": ["tip", "random_event"]},
+    {"id": "event_urgent", "label": "急急急", "category": "event", "file": "急急急.GIF", "bubble_group": "reminder", "is_random_enabled": true, "random_group": "event_light", "random_weight": 1, "triggers": ["urgent", "random_event"]},
+
+    {"id": "event_fireworks", "label": "放烟花", "category": "event", "file": "放烟花.GIF", "bubble_group": "celebrate", "is_random_enabled": true, "random_group": "event_positive", "random_weight": 3, "triggers": ["celebrate", "random_event"]},
+    {"id": "event_happy_fly", "label": "愉快飞天", "category": "event", "file": "愉快飞天.GIF", "bubble_group": "celebrate", "is_random_enabled": true, "random_group": "event_positive", "random_weight": 3, "triggers": ["celebrate", "random_event"]},
+    {"id": "event_cheer_dance", "label": "打气舞", "category": "event", "file": "打气舞.GIF", "bubble_group": "encourage", "is_random_enabled": true, "random_group": "event_positive", "random_weight": 2, "triggers": ["encourage", "random_event"]},
+    {"id": "event_dance", "label": "跳舞", "category": "event", "file": "跳舞.GIF", "bubble_group": "celebrate", "is_random_enabled": true, "random_group": "event_positive", "random_weight": 2, "triggers": ["dance", "random_event"]},
+    {"id": "event_dance2", "label": "跳舞2", "category": "event", "file": "跳舞 (2).GIF", "bubble_group": "celebrate", "is_random_enabled": true, "random_group": "event_positive", "random_weight": 1, "triggers": ["dance", "random_event"]},
+    {"id": "event_dance3", "label": "跳舞3", "category": "event", "file": "跳舞3.GIF", "bubble_group": "celebrate", "is_random_enabled": true, "random_group": "event_positive", "random_weight": 1, "triggers": ["dance", "random_event"]},
+    {"id": "event_dance4", "label": "跳舞4", "category": "event", "file": "跳舞4.GIF", "bubble_group": "celebrate", "is_random_enabled": true, "random_group": "event_positive", "random_weight": 1, "triggers": ["dance", "random_event"]},
+    {"id": "event_jump", "label": "跳一跳", "category": "event", "file": "跳一跳.GIF", "bubble_group": "celebrate", "is_random_enabled": true, "random_group": "event_positive", "random_weight": 1, "triggers": ["double_click", "random_event"]},
+
+    {"id": "event_angry", "label": "好气", "category": "event", "file": "好气.GIF", "bubble_group": "angry", "is_random_enabled": true, "random_group": "event_negative", "random_weight": 2, "triggers": ["angry", "random_event"]},
+    {"id": "event_cry", "label": "大哭", "category": "event", "file": "大哭.GIF", "bubble_group": "sad", "is_random_enabled": true, "random_group": "event_negative", "random_weight": 1, "triggers": ["cry", "random_event"]},
+    {"id": "event_bark", "label": "狗叫", "category": "event", "file": "狗叫.GIF", "bubble_group": "angry", "is_random_enabled": true, "random_group": "event_negative", "random_weight": 1, "triggers": ["angry", "random_event"]},
+    {"id": "event_hmph", "label": "哼生气", "category": "event", "file": "哼（生气）.GIF", "bubble_group": "angry", "is_random_enabled": true, "random_group": "event_negative", "random_weight": 1, "triggers": ["angry", "random_event"]},
+    {"id": "event_you_again", "label": "你再说", "category": "event", "file": "你再说.GIF", "bubble_group": "angry", "is_random_enabled": true, "random_group": "event_negative", "random_weight": 1, "triggers": ["too_many_clicks"]},
+
+    {"id": "typing", "label": "打字记录", "category": "typing", "file": "打字记录.GIF", "bubble_group": "typing", "is_random_enabled": false, "random_group": "none", "random_weight": 0, "triggers": ["typing"]},
+    {"id": "movement_run", "label": "奔跑", "category": "movement", "file": "奔跑.GIF", "bubble_group": "movement", "is_random_enabled": false, "random_group": "none", "random_weight": 0, "triggers": ["bottom_roam", "edge_roam"]},
+    {"id": "movement_drift", "label": "移动漂移", "category": "movement", "file": "移动漂移.GIF", "bubble_group": "movement", "is_random_enabled": false, "random_group": "none", "random_weight": 0, "triggers": ["drag", "edge_roam_alt"]},
+    {"id": "movement_jump_far", "label": "跳远", "category": "movement", "file": "跳远.GIF", "bubble_group": "movement", "is_random_enabled": false, "random_group": "none", "random_weight": 0, "triggers": ["big_move"]},
+    {"id": "movement_arrive", "label": "来了", "category": "movement", "file": "来了.GIF", "bubble_group": "movement", "is_random_enabled": false, "random_group": "none", "random_weight": 0, "triggers": ["summon"]},
+
+    {"id": "gift_flower", "label": "送你花花", "category": "interaction", "file": "送你花花.GIF", "bubble_group": "gift", "is_random_enabled": true, "random_group": "event_positive", "random_weight": 2, "triggers": ["gift_flower", "random_event"]},
+    {"id": "honest", "label": "老实了", "category": "interaction", "file": "老实了.GIF", "bubble_group": "comfort", "is_random_enabled": true, "random_group": "event_light", "random_weight": 2, "triggers": ["comfort", "random_event"]},
+    {"id": "stretch", "label": "拉伸", "category": "reminder", "file": "拉伸.GIF", "bubble_group": "reminder", "is_random_enabled": true, "random_group": "life_work", "random_weight": 2, "triggers": ["sedentary", "random_life"]},
+    {"id": "exercise", "label": "锻炼", "category": "reminder", "file": "锻炼.GIF", "bubble_group": "reminder", "is_random_enabled": true, "random_group": "life_work", "random_weight": 2, "triggers": ["sedentary", "random_life"]}
+  ]
+}

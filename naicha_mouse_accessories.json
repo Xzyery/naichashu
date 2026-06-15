@@ -1,0 +1,24 @@
+{
+  "default": "perm_crown_small",
+  "items": {
+    "temp_crown_small": {"label": "临时小皇冠", "file": "crown_small.png", "x_ratio": 0.5, "y_ratio": 0.18, "width_ratio": 0.23, "scale": 1.0},
+    "perm_crown_small": {"label": "小皇冠", "file": "crown_small.png", "x_ratio": 0.5, "y_ratio": 0.18, "width_ratio": 0.23, "scale": 1.0},
+    "temp_study_glasses": {"label": "临时学习眼镜", "file": "glasses_study.png", "x_ratio": 0.5, "y_ratio": 0.42, "width_ratio": 0.34, "scale": 1.0},
+    "perm_study_glasses": {"label": "学习眼镜", "file": "glasses_study.png", "x_ratio": 0.5, "y_ratio": 0.42, "width_ratio": 0.34, "scale": 1.0},
+    "temp_sleep_hat": {"label": "临时睡帽", "file": "sleep_hat.png", "x_ratio": 0.43, "y_ratio": 0.13, "width_ratio": 0.32, "scale": 1.0},
+    "perm_star_clip": {"label": "星星发夹", "file": "star_clip.png", "x_ratio": 0.64, "y_ratio": 0.2, "width_ratio": 0.17, "scale": 1.0},
+    "perm_scarf": {"label": "小围巾", "file": "scarf_milk_tea.png", "x_ratio": 0.5, "y_ratio": 0.7, "width_ratio": 0.42, "scale": 1.0},
+    "full_sugar_crown": {"label": "满糖皇冠", "file": "crown_full_sugar.png", "x_ratio": 0.5, "y_ratio": 0.17, "width_ratio": 0.26, "scale": 1.0},
+    "bow_pink": {"label": "粉色蝴蝶结", "file": "bow_pink.png", "x_ratio": 0.35, "y_ratio": 0.2, "width_ratio": 0.22, "scale": 1.0},
+    "flower_clip": {"label": "小花发夹", "file": "flower_clip.png", "x_ratio": 0.66, "y_ratio": 0.2, "width_ratio": 0.16, "scale": 1.0},
+    "milk_tea_charm": {"label": "奶茶杯挂件", "file": "milk_tea_charm.png", "x_ratio": 0.37, "y_ratio": 0.68, "width_ratio": 0.2, "scale": 1.0},
+    "headphones": {"label": "小耳机", "file": "headphones.png", "x_ratio": 0.5, "y_ratio": 0.3, "width_ratio": 0.48, "scale": 1.0},
+    "work_badge": {"label": "打工工牌", "file": "work_badge.png", "x_ratio": 0.62, "y_ratio": 0.66, "width_ratio": 0.18, "scale": 1.0},
+    "satchel": {"label": "小背包", "file": "satchel.png", "x_ratio": 0.65, "y_ratio": 0.72, "width_ratio": 0.28, "scale": 1.0},
+    "lucky_star_halo": {"label": "欧气星环", "file": "lucky_star_halo.png", "x_ratio": 0.5, "y_ratio": 0.08, "width_ratio": 0.34, "scale": 1.0},
+    "milk_tea_hat": {"label": "满糖奶茶帽", "file": "milk_tea_hat.png", "x_ratio": 0.5, "y_ratio": 0.14, "width_ratio": 0.28, "scale": 1.0},
+    "cloud_sleep_hat": {"label": "云朵睡眠帽", "file": "cloud_sleep_hat.png", "x_ratio": 0.42, "y_ratio": 0.12, "width_ratio": 0.34, "scale": 1.0},
+    "guardian_cape": {"label": "奶茶守护披风", "file": "guardian_cape.png", "x_ratio": 0.5, "y_ratio": 0.64, "width_ratio": 0.5, "scale": 1.0},
+    "rainbow_sticker": {"label": "隐藏彩虹贴纸", "file": "rainbow_sticker.png", "x_ratio": 0.68, "y_ratio": 0.45, "width_ratio": 0.16, "scale": 1.0}
+  }
+}
