@@ -202,11 +202,16 @@ class AgentStateMonitor:
         return dest
 
     def _build_hook_command(self, source: str) -> str:
-        """Build the hook command string for the given agent source."""
+        """Build the hook command string for the given agent source.
+
+        Works on both macOS/Linux and Windows:
+        - macOS/Linux: NAICHA_AGENT_SOURCE=claude_code /usr/bin/python3 ~/.naicha_mouse/hooks/agent_hook.py
+        - Windows:     set NAICHA_AGENT_SOURCE=claude_code && "C:\\...\\python.exe" "%USERPROFILE%\\.naicha_mouse\\hooks\\agent_hook.py"
+        """
         python_path = sys.executable
         hook_script = AGENT_HOOKS_DIR / "agent_hook.py"
         if sys.platform == "win32":
-            return f'set NAICHA_AGENT_SOURCE={source} && "{python_path}" "{hook_script}"'
+            return f'set NAICHA_AGENT_SOURCE={source}&& "{python_path}" "{hook_script}"'
         return f'NAICHA_AGENT_SOURCE={source} "{python_path}" "{hook_script}"'
 
     def install_claude_code_hooks(self) -> bool:
@@ -214,11 +219,7 @@ class AgentStateMonitor:
         try:
             self._ensure_hook_script()
             command = self._build_hook_command(SOURCE_CLAUDE_CODE)
-            return self._install_hooks_into_config(
-                config_path=CLAUDE_SETTINGS_PATH,
-                events=CLAUDE_CODE_HOOK_EVENTS,
-                command=command,
-            )
+            return self._install_claude_code_hooks(command)
         except Exception:
             return False
 
@@ -238,11 +239,7 @@ class AgentStateMonitor:
         try:
             self._ensure_hook_script()
             command = self._build_hook_command(SOURCE_CODEX_CLI)
-            return self._install_hooks_into_config(
-                config_path=CODEX_HOOKS_PATH,
-                events=CODEX_CLI_HOOK_EVENTS,
-                command=command,
-            )
+            return self._install_codex_cli_hooks(command)
         except Exception:
             return False
 
@@ -294,47 +291,143 @@ class AgentStateMonitor:
         except Exception:
             return False
 
-    def _is_naicha_hook(self, hook_entry: Any) -> bool:
-        """Check if a hook entry is one of ours (by checking the command string)."""
-        if isinstance(hook_entry, dict):
-            cmd = hook_entry.get("command", "")
-            return "agent_hook.py" in cmd
+    def _is_naicha_command(self, command: str) -> bool:
+        """Check if a command string belongs to our hook."""
+        return "agent_hook.py" in command
+
+    def _is_naicha_hook_entry(self, entry: Any) -> bool:
+        """Check if a hook entry belongs to us.
+
+        Supports both formats:
+        - Flat (legacy): {"type": "command", "command": "...agent_hook.py..."}
+        - Matcher format: {"matcher": "...", "hooks": [{"type": "command", "command": "...agent_hook.py..."}]}
+        """
+        if not isinstance(entry, dict):
+            return False
+
+        # Flat format (our old buggy entries)
+        cmd = entry.get("command", "")
+        if self._is_naicha_command(cmd):
+            return True
+
+        # Matcher format (correct Claude Code / Codex CLI schema)
+        hooks_list = entry.get("hooks", [])
+        if isinstance(hooks_list, list):
+            for h in hooks_list:
+                if isinstance(h, dict) and self._is_naicha_command(h.get("command", "")):
+                    return True
+
         return False
 
-    def _install_hooks_into_config(
-        self,
-        config_path: Path,
-        events: list[str],
-        command: str,
-    ) -> bool:
-        """Add naicha hook entries to a config file for the given events."""
-        data = self._read_config(config_path)
+    # ── Claude Code hook installation (matcher schema) ──────
+
+    def _install_claude_code_hooks(self, command: str) -> bool:
+        """Install hooks into Claude Code's settings.json using the matcher schema.
+
+        Claude Code expects each hook event entry to be:
+        {"matcher": "", "hooks": [{"type": "command", "command": "..."}]}
+
+        An empty matcher string "" matches all tools.
+        """
+        data = self._read_config(CLAUDE_SETTINGS_PATH)
         hooks = data.setdefault("hooks", {})
         if not isinstance(hooks, dict):
             hooks = {}
             data["hooks"] = hooks
 
-        new_entry = {"type": "command", "command": command}
+        # First: remove any old flat-format naicha entries (they're invalid)
+        self._remove_legacy_naicha_entries(hooks)
 
-        for event in events:
+        new_entry = {"matcher": "", "hooks": [{"type": "command", "command": command}]}
+
+        for event in CLAUDE_CODE_HOOK_EVENTS:
             entries = hooks.get(event, [])
             if not isinstance(entries, list):
                 entries = []
-            # Check if our hook is already there
-            if any(self._is_naicha_hook(e) for e in entries):
-                # Update the command in case Python path changed
-                for i, e in enumerate(entries):
-                    if self._is_naicha_hook(e) and isinstance(e, dict):
-                        entries[i] = new_entry
-                        break
-            else:
+
+            # Check if our hook is already there (in matcher format)
+            found = False
+            for i, e in enumerate(entries):
+                if isinstance(e, dict) and self._is_naicha_hook_entry(e):
+                    # Update the entry (Python path may have changed)
+                    entries[i] = new_entry
+                    found = True
+                    break
+
+            if not found:
                 entries.append(new_entry)
             hooks[event] = entries
 
-        return self._write_config(config_path, data)
+        return self._write_config(CLAUDE_SETTINGS_PATH, data)
+
+    # ── Codex CLI hook installation (matcher schema) ────────
+
+    def _install_codex_cli_hooks(self, command: str) -> bool:
+        """Install hooks into Codex CLI's hooks.json using the matcher schema.
+
+        Codex CLI uses the same matcher schema as Claude Code.
+        """
+        data = self._read_config(CODEX_HOOKS_PATH)
+        hooks = data.setdefault("hooks", {})
+        if not isinstance(hooks, dict):
+            hooks = {}
+            data["hooks"] = hooks
+
+        # Remove any old flat-format naicha entries
+        self._remove_legacy_naicha_entries(hooks)
+
+        new_entry = {"matcher": "", "hooks": [{"type": "command", "command": command}]}
+
+        for event in CODEX_CLI_HOOK_EVENTS:
+            entries = hooks.get(event, [])
+            if not isinstance(entries, list):
+                entries = []
+
+            found = False
+            for i, e in enumerate(entries):
+                if isinstance(e, dict) and self._is_naicha_hook_entry(e):
+                    entries[i] = new_entry
+                    found = True
+                    break
+
+            if not found:
+                entries.append(new_entry)
+            hooks[event] = entries
+
+        return self._write_config(CODEX_HOOKS_PATH, data)
+
+    # ── Legacy entry cleanup ───────────────────────────────
+
+    def _remove_legacy_naicha_entries(self, hooks: dict[str, Any]) -> bool:
+        """Remove old flat-format naicha entries ({"type": "command", "command": "...agent_hook.py..."})
+        that were incorrectly installed before the matcher schema fix.
+
+        Returns True if any entries were removed.
+        """
+        changed = False
+        for event, entries in list(hooks.items()):
+            if not isinstance(entries, list):
+                continue
+            filtered = [e for e in entries if not (
+                isinstance(e, dict)
+                and "type" in e
+                and "command" in e
+                and "matcher" not in e
+                and "hooks" not in e
+                and self._is_naicha_command(e.get("command", ""))
+            )]
+            if len(filtered) != len(entries):
+                changed = True
+                if filtered:
+                    hooks[event] = filtered
+                else:
+                    del hooks[event]
+        return changed
+
+    # ── Generic uninstall / check ──────────────────────────
 
     def _uninstall_hooks_from_config(self, config_path: Path) -> bool:
-        """Remove all naicha hook entries from a config file."""
+        """Remove all naicha hook entries (both flat and matcher format) from a config file."""
         data = self._read_config(config_path)
         if not data:
             return True  # Nothing to remove
@@ -347,7 +440,7 @@ class AgentStateMonitor:
         for event, entries in list(hooks.items()):
             if not isinstance(entries, list):
                 continue
-            filtered = [e for e in entries if not self._is_naicha_hook(e)]
+            filtered = [e for e in entries if not self._is_naicha_hook_entry(e)]
             if len(filtered) != len(entries):
                 changed = True
                 if filtered:
@@ -356,7 +449,6 @@ class AgentStateMonitor:
                     del hooks[event]
 
         if changed:
-            # Clean up empty hooks dict
             if not hooks:
                 del data["hooks"]
             return self._write_config(config_path, data)
@@ -369,6 +461,6 @@ class AgentStateMonitor:
         if not isinstance(hooks, dict):
             return False
         for entries in hooks.values():
-            if isinstance(entries, list) and any(self._is_naicha_hook(e) for e in entries):
+            if isinstance(entries, list) and any(self._is_naicha_hook_entry(e) for e in entries):
                 return True
         return False
