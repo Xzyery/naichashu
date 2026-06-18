@@ -30,6 +30,11 @@ ACCESSORY_CONFIG_PATH = RESOURCE_DIR / "naicha_mouse_accessories.json"
 ACCESSORY_DIR = RESOURCE_DIR / "accessories"
 AI_CONFIG_PATH = APP_DIR / "naicha_mouse_ai_config.json"
 
+# ── Agent 检测路径 ─────────────────────────────────────────
+AGENT_STATE_DIR = Path.home() / ".naicha_mouse"
+AGENT_STATE_FILE = AGENT_STATE_DIR / "agent_state.json"
+AGENT_HOOKS_DIR = AGENT_STATE_DIR / "hooks"
+
 
 def resolve_asset_path(asset_folder: Path, filename: str) -> Path:
     asset_path = Path(filename)

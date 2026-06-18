@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import subprocess
 from ctypes import POINTER, Structure, byref, windll, wintypes
 
 from naicha_mouse.platform_.base import CursorPos, PlatformBackend, WindowRect
@@ -68,3 +69,37 @@ class WindowsBackend(PlatformBackend):
         if not self._user32.GetCursorPos(byref(point)):
             return None
         return CursorPos(x=point.x, y=point.y)
+
+    # ── process / app detection ────────────────────────────
+    def is_process_running(self, process_name: str) -> bool:
+        """Check if a process with the given name is running via tasklist."""
+        try:
+            result = subprocess.run(
+                ["tasklist", "/FI", f"IMAGENAME eq {process_name}"],
+                capture_output=True, text=True, timeout=5,
+            )
+            return process_name.lower() in result.stdout.lower()
+        except (subprocess.TimeoutExpired, OSError):
+            return False
+
+    def get_foreground_app_name(self) -> str | None:
+        """Return the executable name of the foreground application."""
+        hwnd = self._user32.GetForegroundWindow()
+        if not hwnd:
+            return None
+        pid = wintypes.DWORD()
+        self._user32.GetWindowThreadProcessId(hwnd, byref(pid))
+        if not pid.value:
+            return None
+        try:
+            result = subprocess.run(
+                ["tasklist", "/FI", f"PID eq {pid.value}", "/FO", "CSV", "/NH"],
+                capture_output=True, text=True, timeout=5,
+            )
+            # Output: "app.exe",1234,...
+            line = result.stdout.strip()
+            if line:
+                return line.split(",")[0].strip('"')
+        except (subprocess.TimeoutExpired, OSError):
+            pass
+        return None

@@ -66,6 +66,13 @@
     {"id": "gift_flower", "label": "送你花花", "category": "interaction", "file": "送你花花.GIF", "bubble_group": "gift", "is_random_enabled": true, "random_group": "event_positive", "random_weight": 2, "triggers": ["gift_flower", "random_event"]},
     {"id": "honest", "label": "老实了", "category": "interaction", "file": "老实了.GIF", "bubble_group": "comfort", "is_random_enabled": true, "random_group": "event_light", "random_weight": 2, "triggers": ["comfort", "random_event"]},
     {"id": "stretch", "label": "拉伸", "category": "reminder", "file": "拉伸.GIF", "bubble_group": "reminder", "is_random_enabled": true, "random_group": "life_work", "random_weight": 2, "triggers": ["sedentary", "random_life"]},
-    {"id": "exercise", "label": "锻炼", "category": "reminder", "file": "锻炼.GIF", "bubble_group": "reminder", "is_random_enabled": true, "random_group": "life_work", "random_weight": 2, "triggers": ["sedentary", "random_life"]}
+    {"id": "exercise", "label": "锻炼", "category": "reminder", "file": "锻炼.GIF", "bubble_group": "reminder", "is_random_enabled": true, "random_group": "life_work", "random_weight": 2, "triggers": ["sedentary", "random_life"]},
+
+    {"id": "agent_thinking", "label": "AI思考中", "category": "agent", "file": "学习中.GIF", "bubble_group": "agent_thinking", "is_random_enabled": false, "random_group": "none", "random_weight": 0, "triggers": ["agent_thinking"]},
+    {"id": "agent_working", "label": "AI工作中", "category": "agent", "file": "板砖.GIF", "bubble_group": "agent_working", "is_random_enabled": false, "random_group": "none", "random_weight": 0, "triggers": ["agent_working"]},
+    {"id": "agent_complete", "label": "AI完成啦", "category": "agent", "file": "放烟花.GIF", "bubble_group": "agent_complete", "is_random_enabled": false, "random_group": "none", "random_weight": 0, "triggers": ["agent_complete"]},
+    {"id": "agent_waiting", "label": "AI等待输入", "category": "agent", "file": "急急急.GIF", "bubble_group": "agent_waiting", "is_random_enabled": false, "random_group": "none", "random_weight": 0, "triggers": ["agent_waiting"]},
+    {"id": "agent_error", "label": "AI出错了", "category": "agent", "file": "啥.GIF", "bubble_group": "agent_error", "is_random_enabled": false, "random_group": "none", "random_weight": 0, "triggers": ["agent_error"]},
+    {"id": "agent_idle", "label": "AI待命", "category": "agent", "file": "静态学习中.png", "bubble_group": "agent_idle", "is_random_enabled": false, "random_group": "none", "random_weight": 0, "triggers": ["agent_idle"]}
   ]
 }

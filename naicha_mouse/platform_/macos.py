@@ -103,3 +103,24 @@ class MacOSBackend(PlatformBackend):
         point = self._NSEvent.mouseLocation()
         screen_height = self._Quartz.CGDisplayPixelsHigh(self._Quartz.CGMainDisplayID())
         return CursorPos(x=int(point.x), y=int(screen_height - point.y))
+
+    # ── process / app detection ────────────────────────────
+    def is_process_running(self, process_name: str) -> bool:
+        """Check if a process with the given name is running via NSWorkspace."""
+        workspace = self._NSWorkspace.sharedWorkspace()
+        for app in workspace.runningApplications():
+            local_name = app.localizedName()
+            if local_name and process_name.lower() in local_name.lower():
+                return True
+            bundle_id = app.bundleIdentifier()
+            if bundle_id and process_name.lower() in bundle_id.lower():
+                return True
+        return False
+
+    def get_foreground_app_name(self) -> str | None:
+        """Return the localized name of the foreground application."""
+        workspace = self._NSWorkspace.sharedWorkspace()
+        active_app = workspace.frontmostApplication()
+        if active_app is None:
+            return None
+        return active_app.localizedName()

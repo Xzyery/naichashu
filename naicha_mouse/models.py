@@ -49,6 +49,8 @@ DEFAULT_PROFILE: dict[str, Any] = {
     "gacha_draw_count": 0,
     "gacha_pity_counter": 0,
     "last_discount_draw_date": "",
+    "agent_detection_enabled": False,
+    "trae_detection_enabled": False,
 }
 
 BUBBLE_FRAME_STYLES: dict[str, dict[str, Any]] = {

@@ -22,7 +22,10 @@ from PyQt5.QtWidgets import (
 )
 
 from naicha_mouse import ai, gacha as gacha_mod
+from naicha_mouse.agent_monitor import AgentStateMonitor
 from naicha_mouse.constants import (
+    AGENT_COMPLETE_DISPLAY_MS,
+    AGENT_STATE_POLL_INTERVAL_MS,
     BASE_BUBBLE_HEIGHT,
     BASE_PET_SIZE,
     BASE_WINDOW_HEIGHT,
@@ -37,6 +40,7 @@ from naicha_mouse.constants import (
     GACHA_SUPER_PITY,
     GACHA_TEN_COST,
     MAX_LEVEL,
+    TOOL_NAME_LABELS,
     TYPING_IDLE_TIMEOUT_SECONDS,
 )
 from naicha_mouse.dialogs import AiChatDialog, AiConfigDialog
@@ -120,6 +124,14 @@ class NaichaMouse(QWidget):
         self.typing_key_count = 0
         self.last_typing_bubble_text = ""
 
+        # Agent detection state
+        self.agent_detection_enabled = self.profile.get("agent_detection_enabled", False)
+        self.trae_detection_enabled = self.profile.get("trae_detection_enabled", False)
+        self.agent_active = False
+        self.agent_current_state = "idle"
+        self._agent_monitor: AgentStateMonitor | None = None
+        self._agent_state_timer: QTimer | None = None
+
         self.roam_mode = "off"
         self.roam_direction = 1
         self.roam_edge_index = 0
@@ -157,6 +169,7 @@ class NaichaMouse(QWidget):
 
         self.apply_layout()
         self.setup_timers()
+        self.setup_agent_monitor()
         self.move_to_bottom_right()
         QTimer.singleShot(0, self.play_startup_sequence)
 
@@ -253,7 +266,82 @@ class NaichaMouse(QWidget):
         self.roam_timer.timeout.connect(self.update_roaming)
         self.roam_timer.start(55)
 
-    def apply_layout(self) -> None:
+    def setup_agent_monitor(self) -> None:
+        """Set up the coding agent state monitor."""
+        self._agent_monitor = AgentStateMonitor(
+            on_state_change=self._on_agent_state_change,
+            trae_detection_enabled=self.trae_detection_enabled,
+        )
+        self._agent_state_timer = QTimer(self)
+        self._agent_state_timer.timeout.connect(self._agent_monitor.poll)
+        if self.agent_detection_enabled:
+            self._agent_state_timer.start(AGENT_STATE_POLL_INTERVAL_MS)
+
+    def _on_agent_state_change(self, new_state: str, state_data: dict | None) -> None:
+        """Callback when agent state changes. Maps agent states to pet states."""
+        # Map agent state to pet state ID
+        state_map = {
+            "thinking": "agent_thinking",
+            "working": "agent_working",
+            "complete": "agent_complete",
+            "waiting": "agent_waiting",
+            "error": "agent_error",
+            "idle": "agent_idle",
+        }
+        pet_state_id = state_map.get(new_state)
+        if pet_state_id is None:
+            return
+
+        # Don't override startup/exit animations
+        if self.startup_active or self.exiting:
+            return
+
+        self.agent_current_state = new_state
+        is_active = new_state not in ("idle",)
+        self.agent_active = is_active
+
+        if is_active:
+            self.return_timer.stop()
+            self.random_idle_timer.stop()
+            self.idle_talk_timer.stop()
+
+        # Build bubble message
+        message = None
+        bubble_ms = 3200
+        return_after_ms = None
+
+        if new_state == "working" and state_data:
+            tool_name = state_data.get("tool_name", "")
+            tool_label = TOOL_NAME_LABELS.get(tool_name, tool_name) if tool_name else "操作"
+            source = state_data.get("source", "")
+            source_label = {"claude_code": "Claude Code", "codex_cli": "Codex", "trae": "Trae"}.get(source, source)
+            message = f"AI {tool_label}中... [{source_label}]"
+            bubble_ms = 5000
+        elif new_state == "thinking" and state_data:
+            source = state_data.get("source", "")
+            source_label = {"claude_code": "Claude Code", "codex_cli": "Codex", "trae": "Trae"}.get(source, source)
+            message = f"AI 思考中... [{source_label}]"
+            bubble_ms = 5000
+        elif new_state == "complete":
+            return_after_ms = AGENT_COMPLETE_DISPLAY_MS
+        elif new_state == "idle":
+            # Agent went idle, return to normal idle
+            if not self.focus_active and self.roam_mode == "off":
+                self.return_to_idle()
+                self.schedule_random_idle()
+                self.schedule_idle_chatter()
+            elif self.focus_active:
+                self.play_state("work_study_static" if "work_study_static" in self.states else "work_study")
+            return
+
+        # Don't override focus mode animation (but still update bubble)
+        if self.focus_active and is_active:
+            # Show agent state as bubble text over focus animation
+            if message:
+                self.show_bubble(message, bubble_ms)
+            return
+
+        self.play_state(pet_state_id, message, bubble_ms, return_after_ms=return_after_ms)
         self.setFixedSize(self.window_width, self.window_height)
         font_size = max(10, int(14 * self.user_scale))
         border_radius = max(8, int(14 * self.user_scale))
@@ -639,11 +727,11 @@ class NaichaMouse(QWidget):
     def should_show_accessory(self) -> bool:
         if self.status_panel_active or self.exiting or self.startup_active:
             return False
-        if self.typing_active or self.drag_offset is not None or self.roam_mode != "off":
+        if self.typing_active or self.agent_active or self.drag_offset is not None or self.roam_mode != "off":
             return False
         if self.current_state_id in self.states:
             category = self.states[self.current_state_id].category
-            if category in {"startup", "exit", "typing", "movement"}:
+            if category in {"startup", "exit", "typing", "movement", "agent"}:
                 return False
         accessory_id = self.current_accessory_id()
         if not accessory_id:
@@ -831,6 +919,7 @@ class NaichaMouse(QWidget):
             or self.exiting
             or self.focus_active
             or self.typing_active
+            or self.agent_active
             or self.drag_offset is not None
             or self.roam_mode != "off"
         )
@@ -1115,7 +1204,8 @@ class NaichaMouse(QWidget):
         self.return_timer.stop()
         self.random_idle_timer.stop()
         self.idle_talk_timer.stop()
-        self.play_state("typing")
+        if not self.agent_active:
+            self.play_state("typing")
         self.follow_typing_target(now, snap=True)
 
     def stop_typing_follow(self) -> None:
@@ -1211,6 +1301,91 @@ class NaichaMouse(QWidget):
         self.last_typing_bubble_text = ""
         message = "打字气泡已开启。" if self.typing_bubble_enabled else "打字气泡已关闭。"
         self.show_bubble(message, 2600)
+
+    # ── Agent detection toggles ────────────────────────────
+
+    def toggle_agent_detection(self) -> None:
+        self.agent_detection_enabled = not self.agent_detection_enabled
+        self.profile["agent_detection_enabled"] = self.agent_detection_enabled
+        self._save_profile()
+
+        if self.agent_detection_enabled:
+            if self._agent_state_timer is not None:
+                self._agent_state_timer.start(AGENT_STATE_POLL_INTERVAL_MS)
+            self.show_bubble("Agent 检测已开启。", 2600)
+        else:
+            if self._agent_state_timer is not None:
+                self._agent_state_timer.stop()
+            self.agent_active = False
+            self.agent_current_state = "idle"
+            if not self.focus_active and self.roam_mode == "off":
+                self.return_to_idle()
+                self.schedule_random_idle()
+                self.schedule_idle_chatter()
+            self.show_bubble("Agent 检测已关闭。", 2600)
+
+    def toggle_claude_code_hooks(self) -> None:
+        if self._agent_monitor is None:
+            return
+        if self._agent_monitor.is_claude_code_hooks_installed():
+            if self._agent_monitor.uninstall_claude_code_hooks():
+                self.show_bubble("Claude Code Hooks 已卸载。", 3200)
+            else:
+                self.show_bubble("卸载失败，请检查权限。", 3200)
+        else:
+            if self._agent_monitor.install_claude_code_hooks():
+                self.show_bubble("Claude Code Hooks 已安装！重启 Claude Code 生效。", 4200)
+            else:
+                self.show_bubble("安装失败，请检查配置文件。", 3200)
+
+    def toggle_codex_cli_hooks(self) -> None:
+        if self._agent_monitor is None:
+            return
+        if self._agent_monitor.is_codex_cli_hooks_installed():
+            if self._agent_monitor.uninstall_codex_cli_hooks():
+                self.show_bubble("Codex CLI Hooks 已卸载。", 3200)
+            else:
+                self.show_bubble("卸载失败，请检查权限。", 3200)
+        else:
+            if self._agent_monitor.install_codex_cli_hooks():
+                self.show_bubble("Codex CLI Hooks 已安装！重启 Codex CLI 生效。", 4200)
+            else:
+                self.show_bubble("安装失败，请检查配置文件。", 3200)
+
+    def toggle_trae_detection(self) -> None:
+        self.trae_detection_enabled = not self.trae_detection_enabled
+        self.profile["trae_detection_enabled"] = self.trae_detection_enabled
+        self._save_profile()
+
+        if self._agent_monitor is not None:
+            self._agent_monitor.trae_detection_enabled = self.trae_detection_enabled
+        message = "Trae IDE 检测已开启。" if self.trae_detection_enabled else "Trae IDE 检测已关闭。"
+        self.show_bubble(message, 2600)
+
+    def show_agent_status(self) -> None:
+        if self._agent_monitor is None:
+            self.show_bubble("Agent 监控未启动。", 2600)
+            return
+        state_labels = {
+            "idle": "待命",
+            "thinking": "思考中",
+            "working": "工作中",
+            "complete": "已完成",
+            "waiting": "等待输入",
+            "error": "出错",
+        }
+        state = self._agent_monitor.current_state
+        data = self._agent_monitor.current_data
+        label = state_labels.get(state, state)
+
+        if data and data.get("source"):
+            source = data["source"]
+            source_label = {"claude_code": "Claude Code", "codex_cli": "Codex CLI", "trae": "Trae"}.get(source, source)
+            tool = data.get("tool_name", "")
+            tool_info = f" [{TOOL_NAME_LABELS.get(tool, tool)}]" if tool else ""
+            self.show_bubble(f"Agent: {source_label} — {label}{tool_info}", 5000)
+        else:
+            self.show_bubble(f"Agent 状态: {label}", 3200)
 
     def screen_geometry(self) -> Any:
         return QApplication.primaryScreen().availableGeometry()
@@ -1874,6 +2049,27 @@ class NaichaMouse(QWidget):
         self.add_action(settings_menu, typing_title, self.toggle_typing_follow)
         bubble_title = "关闭打字气泡" if self.typing_bubble_enabled else "开启打字气泡"
         self.add_action(settings_menu, bubble_title, self.toggle_typing_bubble)
+
+        agent_menu = menu.addMenu("Coding Agent")
+        agent_detect_title = "关闭 Agent 检测" if self.agent_detection_enabled else "开启 Agent 检测"
+        self.add_action(agent_menu, agent_detect_title, self.toggle_agent_detection)
+
+        if self.agent_detection_enabled and self._agent_monitor is not None:
+            agent_menu.addSeparator()
+            claude_installed = self._agent_monitor.is_claude_code_hooks_installed()
+            claude_title = "卸载 Claude Code Hooks" if claude_installed else "安装 Claude Code Hooks"
+            self.add_action(agent_menu, claude_title, self.toggle_claude_code_hooks)
+
+            codex_installed = self._agent_monitor.is_codex_cli_hooks_installed()
+            codex_title = "卸载 Codex CLI Hooks" if codex_installed else "安装 Codex CLI Hooks"
+            self.add_action(agent_menu, codex_title, self.toggle_codex_cli_hooks)
+
+            agent_menu.addSeparator()
+            trae_title = "关闭 Trae IDE 检测" if self.trae_detection_enabled else "开启 Trae IDE 检测"
+            self.add_action(agent_menu, trae_title, self.toggle_trae_detection)
+
+            agent_menu.addSeparator()
+            self.add_action(agent_menu, "Agent 状态", self.show_agent_status)
 
         menu.addSeparator()
         self.add_action(menu, "状态面板", self.show_status_panel)

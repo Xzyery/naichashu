@@ -11,6 +11,29 @@ GACHA_TEN_COST = 270
 GACHA_SUPER_PITY = 60
 TYPING_IDLE_TIMEOUT_SECONDS = 5.0
 
+# ── Agent 检测常量 ─────────────────────────────────────────
+AGENT_STATE_POLL_INTERVAL_MS = 500
+AGENT_STATE_TIMEOUT_SECONDS = 120
+AGENT_COMPLETE_DISPLAY_MS = 4000
+
+TOOL_NAME_LABELS: dict[str, str] = {
+    "Edit": "编辑代码",
+    "Write": "写入文件",
+    "Bash": "执行命令",
+    "Read": "读取文件",
+    "Grep": "搜索内容",
+    "Glob": "查找文件",
+    "WebFetch": "获取网页",
+    "WebSearch": "搜索网络",
+    "LSP": "代码分析",
+    "MultiEdit": "批量编辑",
+    "NotebookEdit": "编辑笔记本",
+    "TaskCreate": "创建任务",
+    "TaskUpdate": "更新任务",
+    "TodoRead": "读取待办",
+    "TodoWrite": "写入待办",
+}
+
 # ── AI 提示词 ─────────────────────────────────────────────
 AI_SYSTEM_PROMPT = (
     "你是奶茶鼠，一个住在用户桌面的可爱陪伴小鼠。"

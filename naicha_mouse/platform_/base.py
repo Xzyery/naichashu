@@ -70,3 +70,13 @@ class PlatformBackend(ABC):
     def get_cursor_position(self) -> CursorPos | None:
         """Return current cursor position in screen coordinates, or None."""
         ...
+
+    @abstractmethod
+    def is_process_running(self, process_name: str) -> bool:
+        """Return True if a process with the given name is currently running."""
+        ...
+
+    @abstractmethod
+    def get_foreground_app_name(self) -> str | None:
+        """Return the name of the foreground application, or None if it cannot be determined."""
+        ...
