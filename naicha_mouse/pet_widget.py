@@ -342,6 +342,8 @@ class NaichaMouse(QWidget):
             return
 
         self.play_state(pet_state_id, message, bubble_ms, return_after_ms=return_after_ms)
+
+    def apply_layout(self) -> None:
         self.setFixedSize(self.window_width, self.window_height)
         font_size = max(10, int(14 * self.user_scale))
         border_radius = max(8, int(14 * self.user_scale))
