@@ -284,7 +284,7 @@ class NaichaMouse(QWidget):
             border: {frame["border"]};
             border-radius: {border_radius}px;
             padding: {frame["padding"]};
-            font-family: FONT_FAMILY;
+            font-family: {FONT_FAMILY};
             font-size: {font_size}px;
             {line_height}
         }}
@@ -309,7 +309,7 @@ class NaichaMouse(QWidget):
                 color: {style.get("decoration_color", "rgba(178, 128, 98, 185)")};
                 border: none;
                 padding: {max(5, int(6 * self.user_scale))}px {max(8, int(10 * self.user_scale))}px 0 0;
-                font-family: FONT_FAMILY;
+                font-family: {FONT_FAMILY};
                 font-size: {font_size}px;
                 font-weight: 600;
             }}
@@ -1735,22 +1735,22 @@ class NaichaMouse(QWidget):
     def contextMenuEvent(self, event: Any) -> None:
         menu = QMenu(self)
         menu.setStyleSheet(
-            """
-            QMenu {
+            f"""
+            QMenu {{
                 background: #fff8ee;
                 color: #6f4b3e;
                 border: 1px solid #d7aa86;
                 padding: 6px;
-                font-family: FONT_FAMILY;
+                font-family: {FONT_FAMILY};
                 font-size: 13px;
-            }
-            QMenu::item {
+            }}
+            QMenu::item {{
                 padding: 7px 26px 7px 18px;
                 border-radius: 6px;
-            }
-            QMenu::item:selected {
+            }}
+            QMenu::item:selected {{
                 background: #f4d7b6;
-            }
+            }}
             """
         )
 
