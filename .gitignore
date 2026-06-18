@@ -22,3 +22,9 @@ accessories/*chromakey*.png
 Thumbs.db
 Desktop.ini
 .DS_Store
+# Added by CJADK
+.cjadk/
+# Added by CJADK
+log/app.log
+# Added by CJADK
+.claude/
