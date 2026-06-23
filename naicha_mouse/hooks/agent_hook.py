@@ -11,6 +11,7 @@ Design constraints:
 """
 
 import json
+import argparse
 import os
 import sys
 import tempfile
@@ -36,7 +37,10 @@ CODEX_CLI_MAP: dict[str, str] = {
     "UserPromptSubmit": "thinking",
     "PreToolUse": "working",
     "PostToolUse": "thinking",
+    "PreCompact": "working",
+    "PostCompact": "thinking",
     "Stop": "complete",
+    "SubagentStart": "working",
     "SubagentStop": "complete",
     "PermissionRequest": "waiting",
     "SessionStart": "idle",
@@ -59,8 +63,16 @@ def _serialize_tool_input(tool_input: object) -> str:
     return text[:MAX_TOOL_INPUT_LEN]
 
 
+def _parse_args(argv: list[str]) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(add_help=False)
+    parser.add_argument("--source")
+    return parser.parse_args(argv)
+
+
 def main() -> None:
     try:
+        args = _parse_args(sys.argv[1:])
+
         # Read hook event payload from stdin
         raw = sys.stdin.read()
         if not raw.strip():
@@ -78,10 +90,10 @@ def main() -> None:
             return
 
         # Determine source agent
-        source = os.environ.get("NAICHA_AGENT_SOURCE", "claude_code")
+        source = args.source or os.environ.get("NAICHA_AGENT_SOURCE", "claude_code")
 
         # Map event to state
-        if source == "codex_cli":
+        if source in {"codex", "codex_app", "codex_cli"}:
             state = CODEX_CLI_MAP.get(event_name)
         else:
             state = CLAUDE_CODE_MAP.get(event_name)

@@ -4,8 +4,10 @@ from __future__ import annotations
 
 import json
 import random
+import sys
 import threading
 import time
+from ctypes import c_void_p
 from datetime import date
 from pathlib import Path
 from typing import Any, Optional
@@ -171,6 +173,7 @@ class NaichaMouse(QWidget):
         self.setup_timers()
         self.setup_agent_monitor()
         self.move_to_bottom_right()
+        QTimer.singleShot(0, self.ensure_always_on_top)
         QTimer.singleShot(0, self.play_startup_sequence)
 
     # ── profile / config wrappers ──────────────────────────
@@ -314,12 +317,24 @@ class NaichaMouse(QWidget):
             tool_name = state_data.get("tool_name", "")
             tool_label = TOOL_NAME_LABELS.get(tool_name, tool_name) if tool_name else "操作"
             source = state_data.get("source", "")
-            source_label = {"claude_code": "Claude Code", "codex_cli": "Codex", "trae": "Trae"}.get(source, source)
+            source_label = {
+                "claude_code": "Claude Code",
+                "codex": "Codex",
+                "codex_cli": "Codex",
+                "codex_app": "Codex App",
+                "trae": "Trae",
+            }.get(source, source)
             message = f"AI {tool_label}中... [{source_label}]"
             bubble_ms = 5000
         elif new_state == "thinking" and state_data:
             source = state_data.get("source", "")
-            source_label = {"claude_code": "Claude Code", "codex_cli": "Codex", "trae": "Trae"}.get(source, source)
+            source_label = {
+                "claude_code": "Claude Code",
+                "codex": "Codex",
+                "codex_cli": "Codex",
+                "codex_app": "Codex App",
+                "trae": "Trae",
+            }.get(source, source)
             message = f"AI 思考中... [{source_label}]"
             bubble_ms = 5000
         elif new_state == "complete":
@@ -613,10 +628,59 @@ class NaichaMouse(QWidget):
         if self.exiting:
             return
         self.startup_active = False
+        self.ensure_always_on_top()
         self.return_to_idle()
         self.show_pending_level_up()
         self.schedule_random_idle()
         self.schedule_idle_chatter()
+
+    def ensure_always_on_top(self) -> None:
+        """Re-assert top-most behavior, especially on macOS."""
+        if not (self.windowFlags() & Qt.WindowStaysOnTopHint):
+            self.setWindowFlag(Qt.WindowStaysOnTopHint, True)
+            if self.isVisible():
+                self.show()
+        if self.isVisible():
+            self.raise_()
+        if sys.platform == "darwin":
+            self._ensure_macos_window_level()
+
+    def _ensure_macos_window_level(self) -> None:
+        """Pin the native macOS window above regular app windows and across spaces."""
+        try:
+            import objc  # type: ignore[import-untyped]
+            from AppKit import (  # type: ignore[import-untyped]
+                NSFloatingWindowLevel,
+                NSWindowCollectionBehaviorCanJoinAllSpaces,
+                NSWindowCollectionBehaviorFullScreenAuxiliary,
+            )
+
+            native_view = objc.objc_object(c_void_p=int(self.winId()))
+            ns_window = native_view.window()
+            if ns_window is None:
+                return
+
+            ns_window.setLevel_(NSFloatingWindowLevel)
+            behavior = int(ns_window.collectionBehavior())
+            behavior |= int(NSWindowCollectionBehaviorCanJoinAllSpaces)
+            behavior |= int(NSWindowCollectionBehaviorFullScreenAuxiliary)
+            ns_window.setCollectionBehavior_(behavior)
+        except Exception:
+            pass
+
+    def show_from_tray(self) -> None:
+        """Restore the pet from the tray and bring it back to the front."""
+        self.show()
+        self.setWindowState(self.windowState() & ~Qt.WindowMinimized | Qt.WindowActive)
+        self.raise_()
+        self.activateWindow()
+        self.ensure_always_on_top()
+
+    def toggle_visibility_from_tray(self) -> None:
+        if self.isVisible():
+            self.hide()
+            return
+        self.show_from_tray()
 
     def exit_sequence(self) -> None:
         if self.exiting:
@@ -1345,12 +1409,12 @@ class NaichaMouse(QWidget):
             return
         if self._agent_monitor.is_codex_cli_hooks_installed():
             if self._agent_monitor.uninstall_codex_cli_hooks():
-                self.show_bubble("Codex CLI Hooks 已卸载。", 3200)
+                self.show_bubble("Codex Hooks 已卸载。", 3200)
             else:
                 self.show_bubble("卸载失败，请检查权限。", 3200)
         else:
             if self._agent_monitor.install_codex_cli_hooks():
-                self.show_bubble("Codex CLI Hooks 已安装！重启 Codex CLI 生效。", 4200)
+                self.show_bubble("Codex Hooks 已安装！重启 Codex / Codex App 生效。", 4200)
             else:
                 self.show_bubble("安装失败，请检查配置文件。", 3200)
 
@@ -1382,7 +1446,13 @@ class NaichaMouse(QWidget):
 
         if data and data.get("source"):
             source = data["source"]
-            source_label = {"claude_code": "Claude Code", "codex_cli": "Codex CLI", "trae": "Trae"}.get(source, source)
+            source_label = {
+                "claude_code": "Claude Code",
+                "codex": "Codex",
+                "codex_cli": "Codex",
+                "codex_app": "Codex App",
+                "trae": "Trae",
+            }.get(source, source)
             tool = data.get("tool_name", "")
             tool_info = f" [{TOOL_NAME_LABELS.get(tool, tool)}]" if tool else ""
             self.show_bubble(f"Agent: {source_label} — {label}{tool_info}", 5000)
@@ -2063,7 +2133,7 @@ class NaichaMouse(QWidget):
             self.add_action(agent_menu, claude_title, self.toggle_claude_code_hooks)
 
             codex_installed = self._agent_monitor.is_codex_cli_hooks_installed()
-            codex_title = "卸载 Codex CLI Hooks" if codex_installed else "安装 Codex CLI Hooks"
+            codex_title = "卸载 Codex Hooks" if codex_installed else "安装 Codex Hooks"
             self.add_action(agent_menu, codex_title, self.toggle_codex_cli_hooks)
 
             agent_menu.addSeparator()
@@ -2149,6 +2219,10 @@ class NaichaMouse(QWidget):
             self.switch_to_next_state()
             event.accept()
 
+    def showEvent(self, event: Any) -> None:
+        super().showEvent(event)
+        QTimer.singleShot(0, self.ensure_always_on_top)
+
     def closeEvent(self, event: Any) -> None:
         if self.exiting:
             self._save_profile()
@@ -2156,4 +2230,3 @@ class NaichaMouse(QWidget):
             return
         event.ignore()
         self.exit_sequence()
-

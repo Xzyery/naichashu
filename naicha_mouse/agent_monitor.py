@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import sys
 import tempfile
@@ -22,7 +23,9 @@ from naicha_mouse.resources import AGENT_HOOKS_DIR, AGENT_STATE_FILE
 
 # ── Agent source identifiers ────────────────────────────────
 SOURCE_CLAUDE_CODE = "claude_code"
+SOURCE_CODEX = "codex"
 SOURCE_CODEX_CLI = "codex_cli"
+SOURCE_CODEX_APP = "codex_app"
 SOURCE_TRAE = "trae"
 
 # ── State names ──────────────────────────────────────────────
@@ -48,7 +51,10 @@ CODEX_CLI_HOOK_EVENTS = [
     "UserPromptSubmit",
     "PreToolUse",
     "PostToolUse",
+    "PreCompact",
+    "PostCompact",
     "Stop",
+    "SubagentStart",
     "SubagentStop",
     "PermissionRequest",
     "SessionStart",
@@ -56,7 +62,10 @@ CODEX_CLI_HOOK_EVENTS = [
 
 # ── Config file paths ────────────────────────────────────────
 CLAUDE_SETTINGS_PATH = Path.home() / ".claude" / "settings.json"
+CODEX_CONFIG_TOML_PATH = Path.home() / ".codex" / "config.toml"
 CODEX_HOOKS_PATH = Path.home() / ".codex" / "hooks.json"
+CODEX_TOML_BEGIN_MARKER = "# BEGIN NAICHA HOOKS"
+CODEX_TOML_END_MARKER = "# END NAICHA HOOKS"
 
 # Callback signature: (new_state: str, state_data: dict | None) -> None
 StateCallback = Callable[[str, dict[str, Any] | None], None]
@@ -97,7 +106,7 @@ class AgentStateMonitor:
     def poll(self) -> None:
         """Check for state changes. Called periodically by the host timer.
 
-        Priority: hook state file > Trae process detection.
+        Priority: hook state file > desktop app detection.
         """
         new_state = STATE_IDLE
         new_data: dict[str, Any] | None = None
@@ -108,14 +117,21 @@ class AgentStateMonitor:
             new_state = file_state
             new_data = file_data
 
-        # 2. Trae detection (only if no active hook state)
+        # 2. Codex App detection (only if no active hook state)
+        if new_state == STATE_IDLE:
+            desktop_state = self._detect_codex_app_state()
+            if desktop_state is not None:
+                new_state = desktop_state
+                new_data = {"source": SOURCE_CODEX_APP, "state": desktop_state}
+
+        # 3. Trae detection (only if no active hook state)
         if new_state == STATE_IDLE and self._trae_detection_enabled:
             trae_state = self._detect_trae_state()
             if trae_state is not None:
                 new_state = trae_state
                 new_data = {"source": SOURCE_TRAE, "state": trae_state}
 
-        # 3. Notify on change
+        # 4. Notify on change
         if new_state != self._current_state:
             self._current_state = new_state
             self._current_data = new_data
@@ -169,6 +185,19 @@ class AgentStateMonitor:
 
     # ── Trae detection ──────────────────────────────────────
 
+    def _detect_codex_app_state(self) -> str | None:
+        """Detect the Codex desktop app via process monitoring."""
+        try:
+            backend = get_backend()
+            if not backend.is_process_running("Codex"):
+                return None
+            fg_app = backend.get_foreground_app_name()
+            if fg_app and "Codex" in fg_app:
+                return STATE_WORKING
+            return STATE_IDLE
+        except Exception:
+            return None
+
     def _detect_trae_state(self) -> str | None:
         """Detect Trae IDE state via process monitoring. Returns None if not applicable."""
         try:
@@ -202,17 +231,10 @@ class AgentStateMonitor:
         return dest
 
     def _build_hook_command(self, source: str) -> str:
-        """Build the hook command string for the given agent source.
-
-        Works on both macOS/Linux and Windows:
-        - macOS/Linux: NAICHA_AGENT_SOURCE=claude_code /usr/bin/python3 ~/.naicha_mouse/hooks/agent_hook.py
-        - Windows:     set NAICHA_AGENT_SOURCE=claude_code && "C:\\...\\python.exe" "%USERPROFILE%\\.naicha_mouse\\hooks\\agent_hook.py"
-        """
+        """Build a shell-agnostic hook command string for the given agent source."""
         python_path = sys.executable
         hook_script = AGENT_HOOKS_DIR / "agent_hook.py"
-        if sys.platform == "win32":
-            return f'set NAICHA_AGENT_SOURCE={source}&& "{python_path}" "{hook_script}"'
-        return f'NAICHA_AGENT_SOURCE={source} "{python_path}" "{hook_script}"'
+        return f'"{python_path}" "{hook_script}" --source "{source}"'
 
     def install_claude_code_hooks(self) -> bool:
         """Install hooks into Claude Code's settings.json. Returns True on success."""
@@ -235,24 +257,29 @@ class AgentStateMonitor:
         return self._check_hooks_installed(CLAUDE_SETTINGS_PATH)
 
     def install_codex_cli_hooks(self) -> bool:
-        """Install hooks into Codex CLI's hooks.json. Returns True on success."""
+        """Install hooks into Codex (CLI/App) config. Returns True on success."""
         try:
             self._ensure_hook_script()
-            command = self._build_hook_command(SOURCE_CODEX_CLI)
+            command = self._build_hook_command(SOURCE_CODEX)
             return self._install_codex_cli_hooks(command)
         except Exception:
             return False
 
     def uninstall_codex_cli_hooks(self) -> bool:
-        """Remove naicha hooks from Codex CLI's hooks.json. Returns True on success."""
+        """Remove naicha hooks from Codex (CLI/App) config. Returns True on success."""
         try:
-            return self._uninstall_hooks_from_config(CODEX_HOOKS_PATH)
+            ok_toml = self._uninstall_codex_toml_hooks(CODEX_CONFIG_TOML_PATH)
+            ok_json = self._uninstall_hooks_from_config(CODEX_HOOKS_PATH)
+            return ok_toml and ok_json
         except Exception:
             return False
 
     def is_codex_cli_hooks_installed(self) -> bool:
-        """Check if naicha hooks are present in Codex CLI's config."""
-        return self._check_hooks_installed(CODEX_HOOKS_PATH)
+        """Check if naicha hooks are present in Codex (CLI/App) config."""
+        return (
+            self._check_codex_toml_hooks_installed(CODEX_CONFIG_TOML_PATH)
+            or self._check_hooks_installed(CODEX_HOOKS_PATH)
+        )
 
     # ── Config file manipulation ────────────────────────────
 
@@ -290,6 +317,116 @@ class AgentStateMonitor:
                 return False
         except Exception:
             return False
+
+    def _read_text(self, path: Path) -> str | None:
+        if not path.exists():
+            return None
+        try:
+            return path.read_text(encoding="utf-8")
+        except OSError:
+            return None
+
+    def _write_text(self, path: Path, content: str) -> bool:
+        path.parent.mkdir(parents=True, exist_ok=True)
+        tmp_fd, tmp_path = None, None
+        try:
+            tmp_fd, tmp_path = tempfile.mkstemp(dir=str(path.parent), suffix=path.suffix or ".tmp")
+            with os.fdopen(tmp_fd, "w", encoding="utf-8") as f:
+                f.write(content)
+            os.replace(tmp_path, str(path))
+            return True
+        except OSError:
+            if tmp_path:
+                try:
+                    os.unlink(tmp_path)
+                except OSError:
+                    pass
+            return False
+
+    def _build_codex_toml_block(self, command: str) -> str:
+        command_literal = json.dumps(command, ensure_ascii=False)
+        lines = [
+            CODEX_TOML_BEGIN_MARKER,
+            *[
+                f'{event} = [{{ matcher = "", hooks = [{{ type = "command", command = {command_literal} }}] }}]'
+                for event in CODEX_CLI_HOOK_EVENTS
+            ],
+            CODEX_TOML_END_MARKER,
+        ]
+        return "\n".join(lines)
+
+    def _strip_managed_codex_toml_block(self, text: str) -> str:
+        pattern = re.compile(
+            rf"\n?{re.escape(CODEX_TOML_BEGIN_MARKER)}.*?{re.escape(CODEX_TOML_END_MARKER)}\n?",
+            re.DOTALL,
+        )
+        return pattern.sub("\n", text)
+
+    def _cleanup_empty_hooks_section(self, text: str) -> str:
+        lines = text.splitlines()
+        cleaned: list[str] = []
+        i = 0
+
+        while i < len(lines):
+            line = lines[i]
+            if line.strip() != "[hooks]":
+                cleaned.append(line)
+                i += 1
+                continue
+
+            j = i + 1
+            section_lines: list[str] = []
+            while j < len(lines) and not re.match(r"^\s*\[", lines[j]):
+                section_lines.append(lines[j])
+                j += 1
+
+            has_content = any(
+                section_line.strip() and not section_line.lstrip().startswith("#")
+                for section_line in section_lines
+            )
+            if has_content:
+                cleaned.append(line)
+                cleaned.extend(section_lines)
+            i = j
+
+        result = "\n".join(cleaned).strip()
+        return f"{result}\n" if result else ""
+
+    def _upsert_codex_toml_hooks(self, text: str, command: str) -> str:
+        text = self._strip_managed_codex_toml_block(text).rstrip()
+        block = self._build_codex_toml_block(command)
+
+        hooks_match = re.search(r"(?m)^\[hooks\]\s*$", text)
+        if hooks_match:
+            insert_at = hooks_match.end()
+            updated = f"{text[:insert_at]}\n{block}{text[insert_at:]}"
+        else:
+            suffix = "\n\n" if text else ""
+            updated = f"{text}{suffix}[hooks]\n{block}\n"
+
+        return self._cleanup_empty_hooks_section(updated)
+
+    def _install_codex_toml_hooks(self, config_path: Path, command: str) -> bool:
+        text = self._read_text(config_path) or ""
+        if "[hooks]" in text and CODEX_TOML_BEGIN_MARKER not in text:
+            return False
+        updated = self._upsert_codex_toml_hooks(text, command)
+        return self._write_text(config_path, updated)
+
+    def _uninstall_codex_toml_hooks(self, config_path: Path) -> bool:
+        text = self._read_text(config_path)
+        if text is None:
+            return True
+        updated = self._cleanup_empty_hooks_section(self._strip_managed_codex_toml_block(text))
+        if updated == text:
+            return True
+        return self._write_text(config_path, updated)
+
+    def _check_codex_toml_hooks_installed(self, config_path: Path) -> bool:
+        text = self._read_text(config_path)
+        if text is None:
+            return False
+        return CODEX_TOML_BEGIN_MARKER in text and "agent_hook.py" in text
 
     def _is_naicha_command(self, command: str) -> bool:
         """Check if a command string belongs to our hook."""
@@ -363,17 +500,19 @@ class AgentStateMonitor:
     # ── Codex CLI hook installation (matcher schema) ────────
 
     def _install_codex_cli_hooks(self, command: str) -> bool:
-        """Install hooks into Codex CLI's hooks.json using the matcher schema.
+        """Install hooks into Codex's current config, with legacy JSON fallback."""
+        if self._install_codex_toml_hooks(CODEX_CONFIG_TOML_PATH, command):
+            # Remove our legacy JSON hook file entries to avoid duplicate execution.
+            self._uninstall_hooks_from_config(CODEX_HOOKS_PATH)
+            return True
 
-        Codex CLI uses the same matcher schema as Claude Code.
-        """
+        # Fallback for older Codex builds that still rely on hooks.json.
         data = self._read_config(CODEX_HOOKS_PATH)
         hooks = data.setdefault("hooks", {})
         if not isinstance(hooks, dict):
             hooks = {}
             data["hooks"] = hooks
 
-        # Remove any old flat-format naicha entries
         self._remove_legacy_naicha_entries(hooks)
 
         new_entry = {"matcher": "", "hooks": [{"type": "command", "command": command}]}
